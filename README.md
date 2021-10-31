@@ -12,28 +12,29 @@ This card is dedicated to use in horizontal stack with two cards.
 
 ## Options
 
-| Name             | Type    | Requirement  | Description                                   |
-| ---------------- | ------- | ------------ | --------------------------------------------- |
-| type             | string  | **Required** | `custom:miflora-card-compact`                 |
-| title            | string  | **Required** | Name of the plant being monitored             |
-| image            | string  | **Required** | Path to an image of the plant being monitored |
-| min_moisture     | integer | Optional     | Minimum moisture content for this plant       |
-| max_moisture     | integer | Optional     | Maximum moisture content for this plant       |
-| min_conductivity | integer | Optional     | Minimum conductivity reading for this plant   |
-| max_conductivity | integer | Optional     | Maximum conductivity reading for this plant   |
-| min_temperature  | integer | Optional     | Minimum temperature for this plant            |
-| max_temperature  | integer | Optional     | Maximum temperature for this plant            |
-| min_brightness   | integer | Optional     | Minimum brightness for this plant             |
-| max_brightness   | integer | Optional     | Maximum brightness for this plant             |
-| entities         | list    | **Required** | A list sensors to be monitored                |
+| Name             | Type    | Requirement  | Description                                    |
+| ---------------- | ------- | ------------ | ---------------------------------------------- |
+| type             | string  | **Required** | `custom:miflora-card-compact`                  |
+| title            | string  | **Required** | Name of the plant being monitored              |
+| image            | string  | **Required** | Path to an image of the plant being monitored  |
+| min_moisture     | integer | Optional     | Minimum moisture content for this plant        |
+| max_moisture     | integer | Optional     | Maximum moisture content for this plant        |
+| min_conductivity | integer | Optional     | Minimum conductivity reading for this plant    |
+| max_conductivity | integer | Optional     | Maximum conductivity reading for this plant    |
+| min_temperature  | integer | Optional     | Minimum temperature for this plant             |
+| max_temperature  | integer | Optional     | Maximum temperature for this plant             |
+| min_brightness   | integer | Optional     | Minimum brightness for this plant              |
+| max_brightness   | integer | Optional     | Maximum brightness for this plant              |
+| obsolete_after   | integer | Optional     | Number of hours after the device is marked DEAD|
+| entities         | list    | **Required** | A list sensors to be monitored                 |
 
 ### Entities
 
-| Name             | Type    | Requirement  | Description                                   |
-| ---------------- | ------- | ------------ | --------------------------------------------- |
-| entity           | string  | **Required** | Entity ID                                     |
-| type             | string  | **Required** | Type of entity                                |
-| name             | string  | Optional     | Custom name if you want to change it          |
+| Name             | Type    | Requirement  | Description                                    |
+| ---------------- | ------- | ------------ | ---------------------------------------------- |
+| entity           | string  | **Required** | Entity ID                                      |
+| type             | string  | **Required** | Type of entity                                 |
+| name             | string  | Optional     | Custom name if you want to change it           |
 
 
 ## Installation
@@ -59,6 +60,7 @@ resources:
   max_conductivity: 2000
   min_temperature: 12
   max_temperature: 35
+  obsolete_after: 1
   entities:
   - entity: sensor.miflora_1_moisture
     type: moisture
