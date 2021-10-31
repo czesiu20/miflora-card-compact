@@ -1,4 +1,4 @@
-console.info("%c  MIFLORA-CARD-COMPACT  \n%c Version 0.1.3 ", "color: orange; font-weight: bold; background: black", "color: white; font-weight: bold; background: dimgray");
+console.info("%c  MIFLORA-CARD-COMPACT  \n%c Version 0.1.4 ", "color: orange; font-weight: bold; background: black", "color: white; font-weight: bold; background: dimgray");
 class MifloraCard extends HTMLElement {
     constructor() {
         super();
@@ -11,12 +11,12 @@ class MifloraCard extends HTMLElement {
             temperature: 'hass:thermometer',
             brightness: 'hass:white-balance-sunny',
             rssi: 'mdi:wifi',
-            conductivity: 'mdi:emoticon-poop',
-            battery: 'hass:battery'
+            conductivity: 'mdi:emoticon-poop'
+//            battery: 'hass:battery'
         };
 
     }
-
+/*
     _computeIcon(sensor, state) {
         const icon = this.sensors[sensor];
         if (sensor === 'battery') {
@@ -28,7 +28,7 @@ class MifloraCard extends HTMLElement {
         }
         return icon;
     }
-
+*/
     _click(entity) {
         this._fire('hass-more-info', {
             entityId: entity
@@ -58,77 +58,99 @@ class MifloraCard extends HTMLElement {
         var _maxTemperature = parseFloat(config.max_temperature);
         var _minBrightness = parseFloat(config.min_brightness);
         var _maxBrightness = parseFloat(config.max_brightness);
-
-        this.shadowRoot.getElementById('container').innerHTML = `
-            <div class="content clearfix">
-                <div id="sensors"></div>
-            </div>
-            `;
-
+        var _obsolete_after = parseFloat(config.obsolete_after); //hours
+        
+        var sensors_html = "";
+        var obsolete_censors_counter = 0;
         for (var i = 0; i < config.entities.length; i++) {
             var _name = config.entities[i]['type'];
             var _sensor = config.entities[i]['entity'];
-            if (config.entities[i]['name']) {
-                var _display_name = config.entities[i]['name'];
-            } else {
-                var _display_name = _name[0].toUpperCase() + _name.slice(1);
-            }
+            // if (config.entities[i]['name']) {
+            //     var _display_name = config.entities[i]['name'];
+            // } else {
+            //     var _display_name = _name[0].toUpperCase() + _name.slice(1);
+            // }
             var _state = '';
             var _uom = '';
             if (hass.states[_sensor]) {
                 _state = Math.round(parseFloat(hass.states[_sensor].state));
                 _uom = hass.states[_sensor].attributes.unit_of_measurement || "";
+
+                //detect outdated measurement
+                //required to determine if the battery has died (since no battery entity is provided)
+                if(isNaN(_obsolete_after) == false) {
+                    var _since_last_update_h = Math.round((Date.now() - new Date(hass.states[_sensor].last_updated).getTime()) / 3600000);
+                    if(_since_last_update_h > _obsolete_after) {
+                        obsolete_censors_counter++;
+                    }
+                }
             } else {
                 _state = 'Invalid Sensor';
             }
 
-            var _icon = this._computeIcon(_name, _state);
+            //var _icon = this._computeIcon(_name, _state);
             var _alertStyle = '';
             var _alertIcon = '';
-            if (_name == 'moisture') {
-                if (_state < _minMoisture) {
-                    _alertStyle = ';color:#e15b64';
-                    _alertIcon = '&#9660; '
-                } else if (_state > _maxMoisture) {
-                    _alertStyle = ';color:#e15b64';
-                    _alertIcon = '&#9650; ';
-                }
-            }
-            if (_name == 'conductivity') {
-                if (_state < _minConductivity) {
-                    _alertStyle = ';color:#e15b64';
-                    _alertIcon = '&#9660; ';
-                } else if (_state > _maxConductivity) {
-                    _alertStyle = ';color:#e15b64';
-                    _alertIcon = '&#9650; '
-                }
-            }
-            if (_name == 'temperature') {
-                if (_state < _minTemperature) {
-                    _alertStyle = ';color:#e15b64';
-                    _alertIcon = '&#9660; ';
-                } else if (_state > _maxTemperature) {
-                    _alertStyle = ';color:#e15b64';
-                    _alertIcon = '&#9650; '
-                }
-            }
-            if (_name == 'brightness') {
-                if (_state < _minBrightness) {
-                    //TODO: w zale¿noœci od czasu
-                    //_alertStyle = ';color:#e15b64';
-                    //_alertIcon = '&#9660; ';
-                } else if (_state > _maxBrightness) {
-                    _alertStyle = ';color:#e15b64';
-                    _alertIcon = '&#9650; '
-                }
+            switch(_name) {
+                case 'moisture':
+                    if (_state < _minMoisture) {
+                        _alertStyle = 'style="color:#e15b64;"';
+                        _alertIcon = '&#9660; '
+                    } else if (_state > _maxMoisture) {
+                        _alertStyle = 'style="color:#e15b64;"';
+                        _alertIcon = '&#9650; ';
+                    }
+                    break;
+                case 'conductivity':
+                    if (_state < _minConductivity) {
+                        _alertStyle = 'style="color:#e15b64;"';
+                        _alertIcon = '&#9660; ';
+                    } else if (_state > _maxConductivity) {
+                        _alertStyle = 'style="color:#e15b64;"';
+                        _alertIcon = '&#9650; ';
+                    }
+                    break;
+                case 'temperature':
+                    if (_state < _minTemperature) {
+                        _alertStyle = 'style="color:#e15b64;"';
+                        _alertIcon = '&#9660; ';
+                    } else if (_state > _maxTemperature) {
+                        _alertStyle = 'style="color:#e15b64;"';
+                        _alertIcon = '&#9650; ';
+                    }
+                    break;
+                case 'brightness':
+                    if (_state < _minBrightness) {
+                        //TODO: uzaleÅ¼niÄ‡ od czasu, czyli tylko za dnia
+                        //_alertStyle = 'style="color:#e15b64;"';
+                        //_alertIcon = '&#9660; ';
+                    } else if (_state > _maxBrightness) {
+                        _alertStyle = 'style="color:#e15b64;"';
+                        _alertIcon = '&#9650; ';
+                    }
+                    break;
             }
 
-            this.shadowRoot.getElementById('sensors').innerHTML += `
+            sensors_html += `
                 <div id="sensor${i}" class="sensor">
-                    <div class="state" style="${_alertStyle}">${_alertIcon}${_state} ${_uom}</div>
-                </div>
-                `
+                    <div class="state" ${_alertStyle}>${_alertIcon}${_state} ${_uom}</div>
+                </div>`;
         }
+
+        //if all sensors are obsolete then we can assume that the device is dead
+        if(obsolete_censors_counter == config.entities.length) {
+            this.shadowRoot.getElementById('container').innerHTML = `
+                <div class="content clearfix" style="color:#e15b64;">
+                    <div id="sensors">` + sensors_html + `</div>
+                </div>`;
+        } else {
+            this.shadowRoot.getElementById('container').innerHTML = `
+                <div class="content clearfix">
+                    <div id="sensors">` + sensors_html + `</div>
+                </div>`;
+        }
+
+
 
         for (var i = 0; i < config.entities.length; i++) {
             this.shadowRoot.getElementById('sensor' + [i]).onclick = this._click.bind(this, config.entities[i]['entity']);
@@ -141,6 +163,10 @@ class MifloraCard extends HTMLElement {
             throw new Error('Please define an entity');
         }
 
+        if(config.obsolete_after && isNaN(parseFloat(config.obsolete_after))) {
+            throw new Error('Invalid value of obsolete_after');
+        }
+        
         const root = this.shadowRoot;
         if (root.lastChild) root.removeChild(root.lastChild);
 
@@ -177,7 +203,6 @@ class MifloraCard extends HTMLElement {
             .location {
                 float: right;
                 margin-left: 5px;
-                display: grid;
                 text-align: center;
             }            
             .sensor {
@@ -202,16 +227,16 @@ class MifloraCard extends HTMLElement {
             }
             `;
 
-            // Check if location is set and save location in Variable plantlocation
-            if (config.location == null) {
-                var _plantlocation = '';
-            } else {
-                var _plantlocation = config.location;
-            }
+        // Check if location is set and save location in Variable plantlocation
+        if (config.location == null) {
+            var _plantlocation = '';
+        } else {
+            var _plantlocation = config.location;
+        }
 
-            // Display Plant image (required) and location (optional)
-            plantimage.innerHTML = `
-            <p class="location"><img class="image" src=/local/${config.image}>${_plantlocation}</p>
+        // Display Plant image (required) and location (optional)
+        plantimage.innerHTML = `
+            <p class="location"><img class="image" src=/local/${config.image}><br>${_plantlocation}</p>
             `;
 
         content.id = "container";
